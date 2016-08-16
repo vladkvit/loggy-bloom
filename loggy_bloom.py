@@ -2,6 +2,11 @@
 
 from bitarray import bitarray
 import mmh3
+import math
+
+def is_pow2(num):
+    assert(num >=0 )
+    return num != 0 and ((num & (num - 1)) == 0)
 
 class BloomFilter:
     
@@ -23,44 +28,56 @@ class BloomFilter:
                 return "Nope"
         return "Probably"
 
-bf = BloomFilter(500000, 7)
-huge = []
+#this thing keeps multiple Bloom Filters of sizes
+# N, N/2, N/4, ..., 1
+#there are two ways of shifting the filter
+#one looks like generating a mipmap (shift entire level at a time)
+#easier to implement. It's this one.
+class LoggyBloomFilter1:
+    def __init__(self, size, hash_count):
+        assert(is_pow2(size))
+        self.size = size
+        self.hash_count = hash_count
+        self.bit_arrays = []
+        while size > 1:
+            ba = bitarray(size)
+            ba.setall(0)
+            self.bit_arrays.append(ba)
+            size //= 2
+        
+    def add(self, string):
+        for seed in range(self.hash_count):
+            result = mmh3.hash(string, seed) % self.size
+            self.bit_arrays[0][result] = 1
+        
+    #returns -1 if not found
+    #otherwise, returns the most recent / largest level at which 
+    #object was found
+    def lookup(self, string, maxlevel = math.inf):
+        indeces = []
+        for seed in range(self.hash_count):
+            index = mmh3.hash(string, seed) % self.size
+            indeces.append(index)
 
-#alternative: https://raw.githubusercontent.com/eneko/data-repository/master/data/words.txt
-lines = open("words.txt").read().splitlines()
-for line in lines:
-    bf.add(line)
-    huge.append(line)
+        for level, arr in enumerate(self.bit_arrays):
+            if level > maxlevel:
+                break
+            for index in indeces:
+                if arr[index//(2**level)] == 0:
+                    continue
+                return level
+        return -1
+    
+    def shift(self):
+        #iterate from the deepest array to second one
+        for level in range(len(self.bit_arrays)-1, 0, -1):
+            assert(level-1 >= 0)
+            for loc in range(len(self.bit_arrays[level])):
+                newbit = self.bit_arrays[level-1][loc*2] or \
+                         self.bit_arrays[level-1][loc*2 +1]
+                self.bit_arrays[level][loc] = newbit
 
-import datetime
+        self.bit_arrays[0].setall(0)
 
-start = datetime.datetime.now()
-bf.lookup("google")
-finish = datetime.datetime.now()
-print((finish-start).microseconds)
-
-start = datetime.datetime.now()
-for word in huge:
-    if word == "google":
-        break
-finish = datetime.datetime.now()
-print((finish-start).microseconds)
-
-
-print(bf.lookup("Max"))
-print(bf.lookup("mice"))
-print(bf.lookup("3"))
-
-
-start = datetime.datetime.now()
-bf.lookup("apple")
-finish = datetime.datetime.now()
-print((finish-start).microseconds)
-
-
-start = datetime.datetime.now()
-for word in huge:
-    if word == "apple":
-        break
-finish = datetime.datetime.now()
-print((finish-start).microseconds)
+    def num_levels(self):
+        return len(self.bit_arrays)
