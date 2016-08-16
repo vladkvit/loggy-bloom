@@ -30,9 +30,8 @@ class BloomFilter:
 
 #this thing keeps multiple Bloom Filters of sizes
 # N, N/2, N/4, ..., 1
-#there are two ways of shifting the filter
-#one looks like generating a mipmap (shift entire level at a time)
-#easier to implement. It's this one.
+#The shifts are similar to generating a mipmap (shift entire level at a time)
+#Read the readme for more info
 class LoggyBloomFilter1:
     def __init__(self, size, hash_count):
         assert(is_pow2(size))
