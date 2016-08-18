@@ -101,17 +101,14 @@ class LoggyBloomFilter1:
         return ret
 
 class LoggyBloomFilter2:
-    def __init__(self, size, hash_count, keepLastBit = True):
-        assert(is_pow2(size))
-        self.size = size
+    def __init__(self, size, hash_count):
+        self.sizes = [size, size, size]
         self.hash_count = hash_count
         self.bit_arrays = []
-        self.keep_last_bit = keepLastBit
-        while size >= 1:
+        for size in self.sizes:
             ba = bitarray(size)
             ba.setall(0)
             self.bit_arrays.append(ba)
-            size //= 2
         
     def add(self, string):
         for seed in range(self.hash_count):
@@ -127,28 +124,19 @@ class LoggyBloomFilter2:
             index = mmh3.hash(string, seed) % self.size
             indeces.append(index)
 
-        for level, arr in enumerate(self.bit_arrays):
-            if level > maxlevel:
-                break
-            for index in indeces:
-                if arr[index//(2**level)] == 0:
-                    continue
-                return level
-        return -1
+        #TODO
+        return
     
     def shift(self):
-        #iterate from the deepest array to second one
-        for level in range(len(self.bit_arrays)-1, 0, -1):
-            assert(level-1 >= 0)
-            for loc in range(len(self.bit_arrays[level])):
-                newbit = self.bit_arrays[level-1][loc*2] or \
-                         self.bit_arrays[level-1][loc*2 +1]
-                self.bit_arrays[level][loc] = newbit
-
-        self.bit_arrays[0].setall(0)
+        #TODO
+        return
 
     def num_levels(self):
-        return len(self.bit_arrays)
+        counter = 0
+        for i, arr in enumerate(self.bit_arrays):
+            counter += len(arr) * 2**i
+
+        return counter
 
     def __str__(self):
         ret = "["
