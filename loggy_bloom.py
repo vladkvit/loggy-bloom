@@ -43,27 +43,34 @@ class LoggyBloomFilter1:
             ba.setall(0)
             self.bit_arrays.append(ba)
             size //= 2
-        
-    def add(self, string):
+    
+    def __hash_indeces__(self, string):
+        indeces = []
         for seed in range(self.hash_count):
-            result = mmh3.hash(string, seed) % self.size
-            self.bit_arrays[0][result] = 1
+            indeces.append(mmh3.hash(string, seed) % self.size)
+        return indeces
+                
+    def add(self, string):
+        for idx in self.__hash_indeces__(string):
+            self.bit_arrays[0][idx] = 1
         
     #returns -1 if not found
     #otherwise, returns the most recent / largest level at which 
     #object was found
     def lookup(self, string, maxlevel = math.inf):
-        indeces = []
-        for seed in range(self.hash_count):
-            index = mmh3.hash(string, seed) % self.size
-            indeces.append(index)
+        indeces = self.__hash_indeces__(string)
 
         for level, arr in enumerate(self.bit_arrays):
             if level > maxlevel:
                 break
+
+            found = True
             for index in indeces:
                 if arr[index//(2**level)] == 0:
-                    continue
+                    found = False
+                    break
+
+            if found:
                 return level
         return -1
     
@@ -103,6 +110,7 @@ class LoggyBloomFilter1:
 def shift_by_two(arr):
     return
 
+from collections import namedtuple
 class LoggyBloomFilter2:
     def __init__(self, size, hash_count):
         self.sizes = [size, size, size]
@@ -128,12 +136,27 @@ class LoggyBloomFilter2:
     #object was found
     def lookup(self, string, maxlevel = math.inf):
         indeces = []
+        lookertup = namedtuple('Looker', ['idx', 'bank'])
         for seed in range(self.hash_count):
             index = mmh3.hash(string, seed) % self.sizes[0]
-            indeces.append(index)
+            tup = lookertup(idx=index, bank=0)
+            indeces.append(tup)
 
-        #TODO
-        return
+        shift_lvl = 0
+        found = False
+        while shift_lvl < maxlevel and shift_lvl < self.num_levels():
+            #check
+            for tup in indeces:
+                if self.bit_arrays[tup.bank][tup.idx] == 0:
+                    break
+
+            #increment
+            for tup in indeces:
+                print(tup)
+
+            shift_lvl += 1
+
+        return shift_lvl if found else -1
 
     def shift_bank(self, bank_idx, bit):
         return_bits = None
@@ -171,8 +194,8 @@ class LoggyBloomFilter2:
         for idx, arr in enumerate(self.bit_arrays):
             for i, bit in enumerate(arr):
                 if i == len(arr)-1 and self.overflows[idx] == 0:
-                    continue
-                if bit:
+                    ret += ' '
+                elif bit:
                     ret += '*'
                 else:
                     ret += '.'

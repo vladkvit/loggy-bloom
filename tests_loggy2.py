@@ -19,6 +19,7 @@ def basic():
     bf.shift()
     # assert(bf.lookup(str1) == 3)
     print(bf)
+    bf.lookup("Hello")
     for _ in range(200):
         bf.shift()
         print(bf)
