@@ -100,19 +100,27 @@ class LoggyBloomFilter1:
         ret += ']'
         return ret
 
+def shift_by_two(arr):
+    return
+
 class LoggyBloomFilter2:
     def __init__(self, size, hash_count):
         self.sizes = [size, size, size]
         self.hash_count = hash_count
         self.bit_arrays = []
+
+        #if interpreted as integer, overflows represents 
+        # numshifts % (2 ** len(sizes))
+        self.overflows = bitarray(len(self.sizes)) 
+        self.overflows.setall(0)
         for size in self.sizes:
-            ba = bitarray(size)
+            ba = bitarray(size+1)
             ba.setall(0)
             self.bit_arrays.append(ba)
         
     def add(self, string):
         for seed in range(self.hash_count):
-            result = mmh3.hash(string, seed) % self.size
+            result = mmh3.hash(string, seed) % self.sizes[0]
             self.bit_arrays[0][result] = 1
         
     #returns -1 if not found
@@ -121,27 +129,49 @@ class LoggyBloomFilter2:
     def lookup(self, string, maxlevel = math.inf):
         indeces = []
         for seed in range(self.hash_count):
-            index = mmh3.hash(string, seed) % self.size
+            index = mmh3.hash(string, seed) % self.sizes[0]
             indeces.append(index)
 
         #TODO
         return
-    
+
+    def shift_bank(self, bank_idx, bit):
+        return_bits = None
+        if self.overflows[bank_idx] == 1:
+            return_bits = self.bit_arrays[bank_idx][-2:]
+
+        self.overflows[bank_idx] = not self.overflows[bank_idx]
+        self.bit_arrays[bank_idx][1:] = self.bit_arrays[bank_idx][:-1]
+        self.bit_arrays[bank_idx][0] = bit
+
+        return return_bits
+
     def shift(self):
-        #TODO
+        cur_bank = 0
+        new_bit = 0
+        while cur_bank < len(self.bit_arrays):
+            bits = self.shift_bank(cur_bank, new_bit)
+            if bits == None:
+                break
+            
+            new_bit = bits[0] or bits[1]
+            cur_bank += 1
         return
 
     def num_levels(self):
         counter = 0
-        for i, arr in enumerate(self.bit_arrays):
-            counter += len(arr) * 2**i
+        #count only shifts where bits don't "disappear" past the buffers.
+        for i in range(1, len(self.sizes)):
+            counter += (self.sizes[i]+1) * 2**i
 
         return counter
 
     def __str__(self):
         ret = "["
         for idx, arr in enumerate(self.bit_arrays):
-            for bit in arr:
+            for i, bit in enumerate(arr):
+                if i == len(arr)-1 and self.overflows[idx] == 0:
+                    continue
                 if bit:
                     ret += '*'
                 else:

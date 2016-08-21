@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>dc521040-cad8-4051-9fa7-c6dbfc116980</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>tests_loggy.py</StartupFile>
+    <StartupFile>tests_loggy2.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -24,6 +24,9 @@
   <ItemGroup>
     <Compile Include="loggy_bloom.py" />
     <Compile Include="tests_loggy.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="tests_loggy2.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="tests_regular.py">
