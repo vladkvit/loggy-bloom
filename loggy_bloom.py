@@ -110,8 +110,17 @@ class LoggyBloomFilter1:
 def shift_by_two(arr):
     return
 
-from collections import namedtuple
+
+class Accessor:
+    def __init__(self, idx, bank):
+        self.idx = idx
+        self.bank = bank
+    def __str__(self):
+        return str(self.idx) + ", " + str(self.bank)
+
 class LoggyBloomFilter2:
+
+
     def __init__(self, size, hash_count):
         self.sizes = [size, size, size]
         self.hash_count = hash_count
@@ -136,27 +145,36 @@ class LoggyBloomFilter2:
     #object was found
     def lookup(self, string, maxlevel = math.inf):
         indeces = []
-        lookertup = namedtuple('Looker', ['idx', 'bank'])
+
         for seed in range(self.hash_count):
             index = mmh3.hash(string, seed) % self.sizes[0]
-            tup = lookertup(idx=index, bank=0)
+            tup = Accessor(index, 0)
             indeces.append(tup)
 
         shift_lvl = 0
-        found = False
+
         while shift_lvl < maxlevel and shift_lvl < self.num_levels():
             #check
+            found = True
             for tup in indeces:
-                if self.bit_arrays[tup.bank][tup.idx] == 0:
+                if self.bit_arrays[tup.bank][tup.idx // (2**tup.bank)] == 0:
+                    found = False
                     break
+
+            if found:
+                return shift_lvl
 
             #increment
             for tup in indeces:
-                print(tup)
+                tup.idx += 1
+                #print(tup, shift_lvl, self.num_levels())
+                if tup.idx >= len(self.bit_arrays[tup.bank]) * 2**tup.bank + self.overflows[tup.bank]:
+                    tup.idx = 0
+                    tup.bank += 1
 
             shift_lvl += 1
 
-        return shift_lvl if found else -1
+        return -1
 
     def shift_bank(self, bank_idx, bit):
         return_bits = None
