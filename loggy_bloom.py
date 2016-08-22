@@ -167,8 +167,7 @@ class LoggyBloomFilter2:
             #increment
             for tup in indeces:
                 tup.idx += 1
-                #print(tup, shift_lvl, self.num_levels())
-                if tup.idx >= len(self.bit_arrays[tup.bank]) * 2**tup.bank + self.overflows[tup.bank]:
+                if tup.idx >= self.sizes[tup.bank] * (2**tup.bank) + self.overflows[tup.bank]:
                     tup.idx = 0
                     tup.bank += 1
 
