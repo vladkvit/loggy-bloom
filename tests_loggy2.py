@@ -26,7 +26,7 @@ def basic():
         #solving for N, the bucket, gives:
         #n = log2((k + f[n]) / k)
         last_index = i + bf_len - 1
-        bucket = math.log2( ( bf_len + last_index) / bf_len)
+        bucket = math.floor(math.log2( ( bf_len + last_index) / bf_len))
         #print( bucket, last_index)
         if( bucket < num_buckets ):
             worst_case_shift = 2 ** bucket

@@ -153,10 +153,12 @@ class LoggyBloomFilter2:
 
         shift_lvl = 0
 
-        while shift_lvl < maxlevel and shift_lvl < self.num_levels():
+        numlevels = self.num_levels()
+        while shift_lvl < maxlevel and shift_lvl < numlevels:
             #check
             found = True
             for tup in indeces:
+                assert(tup.bank < len(self.bit_arrays))
                 if self.bit_arrays[tup.bank][tup.idx // (2**tup.bank)] == 0:
                     found = False
                     break
@@ -167,6 +169,8 @@ class LoggyBloomFilter2:
             #increment
             for tup in indeces:
                 tup.idx += 1
+                assert(tup.bank < len(self.sizes))
+                assert(tup.bank < len(self.overflows))
                 if tup.idx >= self.sizes[tup.bank] * (2**tup.bank) + self.overflows[tup.bank]:
                     tup.idx = 0
                     tup.bank += 1
@@ -202,7 +206,7 @@ class LoggyBloomFilter2:
         counter = 0
         #count only shifts where bits don't "disappear" past the buffers.
         for i in range(1, len(self.sizes)):
-            counter += (self.sizes[i]+1) * 2**i
+            counter += (self.sizes[i]) * 2**i
 
         return counter
 
