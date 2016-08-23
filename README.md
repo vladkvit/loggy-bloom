@@ -8,6 +8,7 @@ Basic idea - have a cascade of bloom filters. For example of size 2^n, 2^(n-1), 
 The other way of implementing this cascade is to have the cascade only feed 2 bits from the topmost filter each shift(). This makes it harder to calculate hash indeces, but allows a "probabilistic" forgetfullness where each time period has a gradual increase in error rate, as opposed to factors of 2.
 
 Sample output of first implementation:
+```
 [................................|................|........|....|..|.]
 [.....*..*............*..*.......|................|........|....|..|.]
 [................................|..*.*.....*.*...|........|....|..|.]
@@ -16,8 +17,10 @@ Sample output of first implementation:
 [................................|................|........|....|**|.]
 [................................|................|........|....|..|*]
 [................................|................|........|....|..|*]
+```
 
 Sample output of second implementation:
+```
 [....................... |....................... |....................... ]
 [..*.....*.......*.*.....|....................... |....................... ]
 [...*.....*.......*.*... |........................|....................... ]
@@ -179,3 +182,4 @@ Sample output of second implementation:
 [....................... |........................|......................**]
 [........................|........................|......................**]
 [....................... |....................... |....................... ]
+```
