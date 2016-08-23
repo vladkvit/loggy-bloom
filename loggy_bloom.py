@@ -2,13 +2,10 @@ from bitarray import bitarray
 import mmh3
 import math
 
-def is_pow2(num):
-    assert(num >=0 )
-    return num != 0 and ((num & (num - 1)) == 0)
+
 
 #Initial BloomFilter code from https://gist.github.com/mburst/4700640
 class BloomFilter:
-    
     def __init__(self, size, hash_count):
         self.size = size
         self.hash_count = hash_count
@@ -31,7 +28,11 @@ class BloomFilter:
                 return "Nope"
         return "Probably"
 
-#this thing keeps multiple Bloom Filters of sizes
+
+def is_pow2(num):
+    assert(num >=0 )
+    return num != 0 and ((num & (num - 1)) == 0)
+#this class keeps multiple Bloom Filters of sizes
 # N, N/2, N/4, ..., 1
 #The shifts are similar to generating a mipmap (shift entire level at a time)
 #Read the readme for more info
