@@ -121,8 +121,8 @@ class Accessor:
 class LoggyBloomFilter2:
 
 
-    def __init__(self, size, hash_count):
-        self.sizes = [size, size, size]
+    def __init__(self, size, hash_count, num_buckets):
+        self.sizes = [size for _ in range(num_buckets)]
         self.hash_count = hash_count
         self.bit_arrays = []
 
