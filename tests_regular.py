@@ -23,7 +23,7 @@ for word in huge:
 finish = datetime.datetime.now()
 print((finish-start).microseconds)
 
-
+assert(bf.lookup("Max") == "Probably")
 print(bf.lookup("Max"))
 print(bf.lookup("mice"))
 print(bf.lookup("3"))

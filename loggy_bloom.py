@@ -14,16 +14,20 @@ class BloomFilter:
         self.hash_count = hash_count
         self.bit_array = bitarray(size)
         self.bit_array.setall(0)
+
+    def __hash_indeces__(self, string):
+        indeces = []
+        for seed in range(self.hash_count):
+            indeces.append(mmh3.hash(string, seed) % self.size)
+        return indeces
         
     def add(self, string):
-        for seed in range(self.hash_count):
-            result = mmh3.hash(string, seed) % self.size
-            self.bit_array[result] = 1
+        for idx in self.__hash_indeces__(string):
+            self.bit_array[idx] = 1
             
     def lookup(self, string):
-        for seed in range(self.hash_count):
-            result = mmh3.hash(string, seed) % self.size
-            if self.bit_array[result] == 0:
+        for idx in self.__hash_indeces__(string):
+            if self.bit_array[idx] == 0:
                 return "Nope"
         return "Probably"
 
@@ -134,11 +138,16 @@ class LoggyBloomFilter2:
             ba = bitarray(size+1)
             ba.setall(0)
             self.bit_arrays.append(ba)
-        
-    def add(self, string):
+
+    def __hash_indeces__(self, string):
+        indeces = []
         for seed in range(self.hash_count):
-            result = mmh3.hash(string, seed) % self.sizes[0]
-            self.bit_arrays[0][result] = 1
+            indeces.append(mmh3.hash(string, seed) % self.sizes[0])
+        return indeces
+
+    def add(self, string):
+        for idx in self.__hash_indeces__(string):
+            self.bit_arrays[0][idx] = 1
         
     #returns -1 if not found
     #otherwise, returns the most recent / largest level at which 
@@ -146,8 +155,8 @@ class LoggyBloomFilter2:
     def lookup(self, string, maxlevel = math.inf):
         indeces = []
 
-        for seed in range(self.hash_count):
-            index = mmh3.hash(string, seed) % self.sizes[0]
+        idxs = self.__hash_indeces__(string)
+        for index in idxs:
             tup = Accessor(index, 0)
             indeces.append(tup)
 
